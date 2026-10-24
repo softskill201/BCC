@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Namami Digital Skills Academy">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071d49"/><stop offset="1" stop-color="#1673f9"/></linearGradient><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a6"/><stop offset="1" stop-color="#e9a91b"/></linearGradient></defs>
+<circle cx="120" cy="120" r="113" fill="url(#bg)" stroke="url(#gold)" stroke-width="5"/><circle cx="120" cy="120" r="99" fill="none" stroke="#ffffff70" stroke-width="1.5"/>
+<path d="M120 30 C101 48 94 67 103 82 C109 92 115 96 120 98 C125 96 131 92 137 82 C146 67 139 48 120 30Z" fill="url(#gold)"/>
+<text x="120" y="82" text-anchor="middle" font-family="Georgia,serif" font-size="42" font-weight="bold" fill="#7b1d18">ॐ</text>
+<path d="M85 110 C61 89 48 111 64 133 C75 148 89 144 98 132 M155 110 C179 89 192 111 176 133 C165 148 151 144 142 132" fill="url(#gold)" stroke="#fff1bd" stroke-width="2"/>
+<path d="M94 104 Q120 88 146 104 L140 141 Q120 161 100 141Z" fill="#fff1bd" stroke="#e8a61a" stroke-width="3"/>
+<path d="M108 114 Q120 104 132 114 L128 137 Q120 146 112 137Z" fill="#d83a25"/><circle cx="120" cy="122" r="5" fill="#ffd86a"/>
+<path d="M70 151 Q120 171 170 151 L160 169 Q120 185 80 169Z" fill="url(#gold)"/>
+<path d="M44 178 Q120 199 196 178 L183 193 Q120 210 57 193Z" fill="#fff" stroke="url(#gold)" stroke-width="2"/>
+<text x="120" y="189" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#09275c">NAMAMI</text>
+<text x="120" y="208" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="bold" letter-spacing="1" fill="#fff">DIGITAL SKILLS ACADEMY</text>
+<path d="M101 218 L139 218 L120 234Z" fill="url(#gold)"/>
+</svg>
