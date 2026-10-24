@@ -120,6 +120,7 @@ async function loadQuestions(){
 let cameraStream=null;
 function stopStudentCamera(){if(cameraStream){cameraStream.getTracks().forEach(track=>track.stop());cameraStream=null;}$("cameraVideo").srcObject=null;$("cameraBox").classList.add("hidden");$("cameraBtn").disabled=false;$("cameraBtn").textContent="📷 Live Camera से फोटो लें";}
 async function setStudentPhoto(data){student.photoData=data||"";if(data){$("photoPreview").src=data;$("photoPreview").classList.remove("hidden");$("removePhotoBtn").classList.remove("hidden");}else{$("photoPreview").removeAttribute("src");$("photoPreview").classList.add("hidden");$("removePhotoBtn").classList.add("hidden");}}
+window.__cameraHandlerReady=true;
 $("cameraBtn").addEventListener("click",async()=>{
  try{
   $("formMsg").textContent="कैमरा अनुमति का इंतज़ार है…";
@@ -196,4 +197,34 @@ function downloadPersonalReport(){
 }
 $('downloadReportBtn').onclick=downloadPersonalReport;
 $('downloadBtn').onclick=()=>{const blob=new Blob([JSON.stringify(resultData,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='BCC-scorecard-'+(student.roll||'student')+'.json';a.click();URL.revokeObjectURL(a.href);};
+</script>
+<script>
+/* Standalone webcam fallback: still works if another part of the exam script fails. */
+(function(){
+  const btn=document.getElementById('cameraBtn');
+  if(!btn || window.__cameraHandlerReady) return;
+  const msg=document.getElementById('formMsg');
+  const box=document.getElementById('cameraBox');
+  const video=document.getElementById('cameraVideo');
+  const capture=document.getElementById('captureBtn');
+  const cancel=document.getElementById('cancelCameraBtn');
+  const preview=document.getElementById('photoPreview');
+  let stream=null;
+  const say=t=>{if(msg)msg.textContent=t;else alert(t);};
+  const stop=()=>{if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}if(video)video.srcObject=null;if(box)box.classList.add('hidden');btn.disabled=false;btn.textContent='📷 Live Camera से फोटो लें';};
+  btn.addEventListener('click',async function(){
+    say('कैमरा बटन काम कर रहा है — अनुमति की जाँच हो रही है…');
+    try{
+      if(!window.isSecureContext)throw new Error('HTTPS website खोलें: https://softskill201.github.io/BCC/');
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('इस browser में camera API उपलब्ध नहीं है। Chrome या Edge में HTTPS website खोलें।');
+      try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'user'}},audio:false});}
+      catch(e){stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});}
+      video.srcObject=stream;box.classList.remove('hidden');btn.disabled=true;btn.textContent='Camera चालू है';await video.play();say('कैमरा चालू है। अब Capture दबाएँ।');
+    }catch(e){stop();const m={NotAllowedError:'Camera permission Block है। Address bar के site settings में Camera को Allow करें।',NotFoundError:'Camera नहीं मिला। Gallery विकल्प इस्तेमाल करें।',NotReadableError:'Camera दूसरी app में खुला है। दूसरी app बंद करें।',SecurityError:'Browser ने camera रोक दिया। HTTPS website खोलें।'};say('कैमरा नहीं खुला: '+(m[e.name]||e.message||e.name));}
+  });
+  if(capture)capture.addEventListener('click',function(){
+    try{if(!video.videoWidth)throw new Error('Camera अभी तैयार नहीं है।');const c=document.createElement('canvas');const scale=Math.min(1,420/Math.max(video.videoWidth,video.videoHeight));c.width=Math.round(video.videoWidth*scale);c.height=Math.round(video.videoHeight*scale);c.getContext('2d').drawImage(video,0,0,c.width,c.height);const data=c.toDataURL('image/jpeg',.78);window.__fallbackStudentPhoto=data;if(preview){preview.src=data;preview.classList.remove('hidden');}stop();say('फोटो capture हो गई। अगर बाकी exam form script काम नहीं कर रही, तो page refresh करके फिर कोशिश करें.');}catch(e){say(e.message);}
+  });
+  if(cancel)cancel.addEventListener('click',stop);
+})();
 </script></body></html>
