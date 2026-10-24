@@ -28,6 +28,20 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #1457d933}
 .photo-upload{grid-column:1/-1}.photo-upload small{display:block;margin-top:7px}.photo-actions,.camera-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:9px}.gallery-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:10px;padding:11px 15px;background:#e7efff;color:#174da3;font-weight:700;cursor:pointer}.camera-box{margin-top:12px;padding:12px;border:1px solid #bfdbfe;border-radius:16px;background:#f5f9ff;max-width:440px}.camera-box video{display:block;width:100%;max-height:320px;object-fit:cover;background:#081b38;border-radius:12px;transform:scaleX(-1)}.photo-preview{width:112px;height:112px;object-fit:cover;border-radius:50%;border:3px solid #bfdbfe;box-shadow:0 5px 16px #164e6320;margin-top:12px}.photo-upload #removePhotoBtn{display:block;margin-top:8px}footer{padding:28px 16px;color:#647da2}
 @media(max-width:600px){header{padding:20px 12px}.wrap{margin:16px auto}.panel{border-radius:17px}.topline{align-items:stretch}.topline button{flex:1}}
 @media print{body{background:white!important}.panel{border:0!important;border-radius:0!important;box-shadow:none!important}#resultPanel{border-top:3px solid #1473f9!important}}
+
+/* Animated technology atmosphere — decorative only, exam logic untouched */
+body{position:relative;isolation:isolate;background:linear-gradient(135deg,#07142f 0%,#0b2450 45%,#07172e 100%);min-height:100vh}
+body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.65;background-image:linear-gradient(#32d8ff18 1px,transparent 1px),linear-gradient(90deg,#32d8ff18 1px,transparent 1px),radial-gradient(circle at 15% 25%,#0ea5e944,transparent 28%),radial-gradient(circle at 85% 70%,#8b5cf644,transparent 30%);background-size:42px 42px,42px 42px,100% 100%,100% 100%;animation:techGridMove 22s linear infinite}
+body:after{content:"";position:fixed;z-index:-1;pointer-events:none;width:38vw;height:38vw;min-width:260px;min-height:260px;max-width:620px;max-height:620px;left:-12vw;top:15vh;border:1px solid #22d3ee44;border-radius:50%;box-shadow:0 0 0 35px #22d3ee0c,0 0 0 75px #3b82f60b,0 0 70px #22d3ee25;animation:techOrbFloat 13s ease-in-out infinite alternate}
+@keyframes techGridMove{from{background-position:0 0,0 0,0 0,0 0}to{background-position:84px 84px,-84px 84px,0 0,0 0}}
+@keyframes techOrbFloat{0%{transform:translate3d(0,0,0) scale(.96)}100%{transform:translate3d(8vw,8vh,0) scale(1.08)}}
+header,.wrap,footer{position:relative;z-index:1}
+header{border-bottom:1px solid #67e8f955}
+.wrap{filter:drop-shadow(0 10px 28px #02081722)}
+.panel{background:linear-gradient(145deg,#fffffffa,#f3f8ffff);backdrop-filter:blur(5px)}
+@media(prefers-reduced-motion:reduce){body:before,body:after{animation:none}}
+@media print{body{background:white!important}body:before,body:after{display:none!important}}
+
 </style></head><body>
 <header><img src="logo-real.jpg" alt="Namami Digital Skills Academy Logo" style="width:130px;max-width:40vw;height:auto;display:block;margin:0 auto 10px;filter:drop-shadow(0 2px 4px #0003)"><h1>NAMAMI DIGITAL SKILLS ACADEMY</h1><p>Sohagpur | Basic Computer Course (BCC)</p><p>Online MCQ Examination · कुल समय: 26 मिनट · कुल प्रश्न: 26</p></header>
 <main class="wrap">
