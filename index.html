@@ -100,7 +100,7 @@ input:focus{outline:3px solid #22d3ee38;border-color:#0891b2}
 /* Use the existing academy logo in the welcome emblem */
 .welcome-logo{display:block;width:clamp(74px,9vw,112px);height:clamp(74px,9vw,112px);object-fit:contain;border-radius:50%;padding:5px;background:#ffffff;border:2px solid #67e8f9;box-shadow:0 0 22px #22d3ee55;margin-bottom:8px}.emblem-ring small{position:relative;z-index:2}
 </style></head><body>
-<header><h1>NAMAMI DIGITAL SKILLS ACADEMY</h1><p>Sohagpur | Basic Computer Course (BCC)</p><p>Online MCQ Examination · कुल समय: 26 मिनट · कुल प्रश्न: 26</p></header>
+<header><h1>NAMAMI DIGITAL SKILLS ACADEMY</h1><p>Sohagpur | Basic Computer Course (BCC)</p><h2 style="margin:8px 0;color:#a5f3fc">TERM – 1 EXAMINATION</h2><p>Secure Student Login · कुल समय: 26 मिनट · कुल प्रश्न: 26</p></header>
 <main class="wrap">
 <section class="welcome-hero"><div class="welcome-copy"><div class="welcome-eyebrow">● OFFICIAL ONLINE EXAM PORTAL</div><h2>Welcome to Your <span>Digital Future</span></h2><p>आपकी मेहनत, आपकी पहचान। आइए अपनी कंप्यूटर स्किल्स को साबित करें।</p><div class="welcome-tags"><span>Basic Computer Course</span><span>26 Minutes</span><span>26 Questions</span></div><div class="welcome-steps"><span>01 · Details भरें</span><i></i><span>02 · Exam दें</span><i></i><span>03 · Result देखें</span></div></div><div class="welcome-emblem"><div class="emblem-ring"><img class="welcome-logo" src="logo-real.jpg" alt="Namami Digital Skills Academy Logo"><small>SKILLS · SUCCESS</small></div><span class="chip chip-a">HTML</span><span class="chip chip-b">AI</span><span class="chip chip-c">1010</span></div></section>
 <section class="exam-rules panel" aria-label="Exam instructions">
@@ -115,7 +115,7 @@ input:focus{outline:3px solid #22d3ee38;border-color:#0891b2}
 </section>
 <section id="studentForm" class="panel"><h2>विद्यार्थी विवरण / Student Details</h2><p class="muted">कृपया सभी विवरण सही भरें। परीक्षा शुरू होने के बाद 26 मिनट का समय चलेगा।</p><div class="grid">
 <div><label for="name">पूरा नाम / Full Name *</label><input id="name" maxlength="100" required autocomplete="name"></div>
-<div><label for="roll">रोल नंबर / Roll Number *</label><input id="roll" maxlength="40" required></div>
+<div><label for="roll">रोल नंबर / Roll Number *</label><input id="roll" maxlength="40" required autocomplete="username"></div><div><label for="examPassword">परीक्षा पासवर्ड / Exam Password *</label><input id="examPassword" type="password" maxlength="100" required autocomplete="current-password"></div>
 <div><label for="mobile">मोबाइल नंबर / Mobile *</label><input id="mobile" maxlength="20" required inputmode="tel"></div>
 <div><label for="email">ईमेल / Email *</label><input id="email" type="email" maxlength="254" required autocomplete="email"></div><div class="photo-upload">
 <label>विद्यार्थी की फोटो / Student Photo (Optional)</label>
@@ -133,7 +133,7 @@ input:focus{outline:3px solid #22d3ee38;border-color:#0891b2}
 const SUPABASE_URL = "https://jnfteavjywiqoatuwwhx.supabase.co";
 const SUPABASE_KEY = "sb_publishable_n8VJNBBkRO1u4btW9nWx3Q_d4NpxCWu";
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let questions=[], startedAt=null, deadline=0, timerHandle=null, resultData=null, student={photoData:""};
+let questions=[], startedAt=null, deadline=0, timerHandle=null, resultData=null, examSessionToken=null, authenticatedRoll=null, student={photoData:""};
 const $=id=>document.getElementById(id);
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 async function loadQuestions(){
@@ -159,12 +159,21 @@ async function readStudentPhoto(file){
 }
 $("photo").addEventListener("change",async e=>{try{const data=await readStudentPhoto(e.target.files[0]);await setStudentPhoto(data);if(data)$("formMsg").textContent="Gallery फोटो तैयार है।";}catch(err){await setStudentPhoto("");e.target.value="";$("formMsg").textContent=err.message;}});
 $('startBtn').onclick=async()=>{
- const name=$('name').value.trim(),roll=$('roll').value.trim(),mobile=$('mobile').value.trim(),email=$('email').value.trim();
- if(!name||!roll||!mobile||!email||!/^\S+@\S+\.\S+$/.test(email)){ $('formMsg').textContent='सभी विवरण सही भरें। / Please complete all fields.';return;}
- $('startBtn').disabled=true;$('formMsg').textContent='प्रश्न लोड हो रहे हैं…';
- try{await loadQuestions();student={...student,name,roll,mobile,email};startedAt=new Date().toISOString();deadline=Date.now()+26*60*1000;
- $('candidate').textContent=name+' · Roll: '+roll;$('studentForm').classList.add('hidden');$('examPanel').classList.remove('hidden');renderQuestions();tick();timerHandle=setInterval(tick,1000);
- }catch(e){$('formMsg').textContent='त्रुटि: '+e.message;$('startBtn').disabled=false;}
+ const name=$('name').value.trim(),roll=$('roll').value.trim().toUpperCase(),password=$('examPassword').value,mobile=$('mobile').value.trim(),email=$('email').value.trim();
+ if(!roll||!password||!name||!mobile||!email||! /^\S+@\S+\.\S+$/.test(email)){ $('formMsg').textContent='रोल नंबर, पासवर्ड और सभी विवरण सही भरें।';return;}
+ $('startBtn').disabled=true;$('formMsg').textContent='पासवर्ड सत्यापित हो रहा है…';
+ try{
+   const auth=await db.rpc('bcc_term1_login',{p_roll_number:roll,p_password:password});
+   if(auth.error)throw auth.error;
+   const login=auth.data;
+   if(!login||!login.session_token)throw new Error('Login response invalid');
+   if(login.roll_number!==roll)throw new Error('Roll number mismatch');
+   if(name.toLowerCase()!==String(login.student_name).toLowerCase())throw new Error('यह रोल नंबर इस विद्यार्थी के नाम से मेल नहीं खाता।');
+   examSessionToken=login.session_token;authenticatedRoll=login.roll_number;
+   await loadQuestions();student={...student,name:login.student_name,roll:login.roll_number,mobile,email};startedAt=new Date().toISOString();deadline=Date.now()+26*60*1000;
+   $('name').value=login.student_name;$('roll').value=login.roll_number;
+   $('candidate').textContent=login.student_name+' · Roll: '+login.roll_number;$('studentForm').classList.add('hidden');$('examPanel').classList.remove('hidden');renderQuestions();tick();timerHandle=setInterval(tick,1000);
+ }catch(e){examSessionToken=null;authenticatedRoll=null;$('formMsg').textContent='Login/Exam त्रुटि: '+(e.message||'विवरण जाँचें।');$('startBtn').disabled=false;}
 };
 function renderQuestions(){ $('questions').innerHTML=questions.map((q,i)=>'<article class="q" id="q-'+q.id+'"><div class="unit">Unit '+String(q.unit_no).padStart(2,'0')+' · Question '+(i+1)+'</div><h3>'+escapeHtml(q.question_en)+'</h3><p>'+escapeHtml(q.question_hi)+'</p>'+q.options.map((o,j)=>'<label class="opt"><input type="radio" name="q'+q.id+'" value="'+j+'"><span>'+String.fromCharCode(65+j)+'. '+escapeHtml(o)+'</span></label>').join('')+'</article>').join('');
  $('questions').addEventListener('change',updateProgress);updateProgress();}
@@ -174,7 +183,8 @@ $('submitBtn').onclick=()=>{const n=questions.filter(q=>document.querySelector('
 let submitting=false;
 async function submitExam(auto){if(submitting||!questions.length)return;submitting=true;$('submitBtn').disabled=true;$('examMsg').textContent=auto?'समय समाप्त! उत्तर जमा हो रहे हैं…':'उत्तर जमा हो रहे हैं…';
 try{const answers=questions.map(q=>({question_id:q.id,selected_option:Number(document.querySelector('input[name="q'+q.id+'"]:checked')?.value??-1)}));
-const {data,error}=await db.rpc('bcc_submit_exam',{p_student_name:student.name,p_roll_number:student.roll,p_mobile:student.mobile,p_email:student.email,p_answers:answers,p_started_at:startedAt,p_student_photo_data:student.photoData||null});
+if(!examSessionToken||student.roll!==authenticatedRoll)throw new Error('Valid student login required.');
+const {data,error}=await db.rpc('bcc_submit_term1_exam',{p_student_name:student.name,p_roll_number:student.roll,p_mobile:student.mobile,p_email:student.email,p_answers:answers,p_started_at:startedAt,p_student_photo_data:student.photoData||null,p_exam_session:examSessionToken});
 if(error)throw error;resultData={...data,student_name:student.name,roll_number:student.roll,submitted_at:new Date().toISOString(),review:data.review||[]};
 $('examPanel').classList.add('hidden');$('resultPanel').classList.remove('hidden');$('score').textContent=data.score+' / '+data.total;$('resultText').textContent=(data.passed?'PASS':'KEEP PRACTICING')+' · '+Math.round(data.score/data.total*100)+'%';$('resultMeta').textContent='Student: '+student.name+' | Roll: '+student.roll+' | '+new Date().toLocaleString();
 $('accessInfo').textContent='Review access code: '+data.access_token+' · Attempt ID: '+data.attempt_id;renderReview(resultData.review);window.scrollTo(0,0);
