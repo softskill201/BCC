@@ -160,7 +160,7 @@ async function readStudentPhoto(file){
 $("photo").addEventListener("change",async e=>{try{const data=await readStudentPhoto(e.target.files[0]);await setStudentPhoto(data);if(data)$("formMsg").textContent="Gallery फोटो तैयार है।";}catch(err){await setStudentPhoto("");e.target.value="";$("formMsg").textContent=err.message;}});
 $('startBtn').onclick=async()=>{
  const name=$('name').value.trim(),roll=$('roll').value.trim().toUpperCase(),password=$('examPassword').value,mobile=$('mobile').value.trim(),email=$('email').value.trim();
- if(!roll||!password||!name||!mobile||!email||! /^\S+@\S+\.\S+$/.test(email)){ $('formMsg').textContent='रोल नंबर, पासवर्ड और सभी विवरण सही भरें।';return;}
+ if(!roll||!password||!mobile||!email||! /^\S+@\S+\.\S+$/.test(email)){ $('formMsg').textContent='रोल नंबर, पासवर्ड, मोबाइल और सही ईमेल भरें। विद्यार्थी का नाम रिकॉर्ड से अपने-आप आएगा।';return;}
  $('startBtn').disabled=true;$('formMsg').textContent='पासवर्ड सत्यापित हो रहा है…';
  try{
    const auth=await db.rpc('bcc_term1_login',{p_roll_number:roll,p_password:password});
@@ -168,8 +168,7 @@ $('startBtn').onclick=async()=>{
    const login=auth.data;
    if(!login||!login.session_token)throw new Error('Login response invalid');
    if(login.roll_number!==roll)throw new Error('Roll number mismatch');
-   if(name.toLowerCase()!==String(login.student_name).toLowerCase())throw new Error('यह रोल नंबर इस विद्यार्थी के नाम से मेल नहीं खाता।');
-   examSessionToken=login.session_token;authenticatedRoll=login.roll_number;
+      examSessionToken=login.session_token;authenticatedRoll=login.roll_number;
    await loadQuestions();student={...student,name:login.student_name,roll:login.roll_number,mobile,email};startedAt=new Date().toISOString();deadline=Date.now()+26*60*1000;
    $('name').value=login.student_name;$('roll').value=login.roll_number;
    $('candidate').textContent=login.student_name+' · Roll: '+login.roll_number;$('studentForm').classList.add('hidden');$('examPanel').classList.remove('hidden');renderQuestions();tick();timerHandle=setInterval(tick,1000);
