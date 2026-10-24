@@ -71,6 +71,19 @@ input:focus{outline:3px solid #22d3ee38;border-color:#0891b2}
 @media(prefers-reduced-motion:reduce){.welcome-hero:before,.emblem-ring,.emblem-ring:before,.emblem-ring:after,.chip{animation:none!important}}
 @media print{.welcome-hero{display:none!important}}
 
+/* Polished on-page result panel */
+#resultPanel{position:relative;overflow:hidden;background:linear-gradient(145deg,#ffffff 0%,#f2f8ff 100%);border:1px solid #bfdbfe;border-top:5px solid #1680f8}
+#resultPanel:before{content:"";position:absolute;right:-55px;top:-70px;width:190px;height:190px;border:1px solid #93c5fd66;border-radius:50%;box-shadow:0 0 0 24px #dbeafe33,0 0 0 48px #dbeafe22;pointer-events:none}
+#resultPanel>h2{position:relative;display:flex;align-items:center;gap:10px;font-size:clamp(22px,3vw,28px)}
+#resultPanel>h2:before{content:"★";display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:linear-gradient(135deg,#dbeafe,#cffafe);color:#1d4ed8;font-size:20px}
+#resultPanel .score{position:relative;display:inline-block;margin:8px 0;padding:10px 22px;border:1px solid #a7f3d0;border-radius:16px;background:linear-gradient(135deg,#d1fae5,#e0f2fe);color:#047857;font-size:clamp(36px,6vw,54px);box-shadow:0 8px 20px #0f766e12}
+#resultPanel #resultText{position:relative;font-size:clamp(17px,2.5vw,21px);font-weight:800;color:#0f766e}
+#resultPanel #resultMeta{position:relative;padding:10px 13px;border-radius:12px;background:#eff6ff;border:1px solid #dbeafe;line-height:1.65}
+#resultPanel .topline{position:relative;justify-content:flex-start;margin:16px 0}
+#resultPanel .topline button,#resultPanel>#downloadBtn{font-size:14px}
+#resultPanel #review{margin-top:18px}
+@media(max-width:560px){#resultPanel .topline{flex-direction:column;align-items:stretch}#resultPanel .topline button,#resultPanel>#downloadBtn{width:100%}}
+
 /* Premium exam instructions card */
 .exam-rules{margin:0 0 20px;background:linear-gradient(135deg,#f8fbff,#eef7ff);border:1px solid #bfdbfe;box-shadow:0 12px 32px #02081718}
 .rules-heading{display:flex;align-items:center;gap:12px;margin-bottom:16px}
