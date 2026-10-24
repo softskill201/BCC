@@ -71,12 +71,35 @@ input:focus{outline:3px solid #22d3ee38;border-color:#0891b2}
 @media(prefers-reduced-motion:reduce){.welcome-hero:before,.emblem-ring,.emblem-ring:before,.emblem-ring:after,.chip{animation:none!important}}
 @media print{.welcome-hero{display:none!important}}
 
+/* Premium exam instructions card */
+.exam-rules{margin:0 0 20px;background:linear-gradient(135deg,#f8fbff,#eef7ff);border:1px solid #bfdbfe;box-shadow:0 12px 32px #02081718}
+.rules-heading{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.rules-heading h2{margin:0 0 4px;font-size:clamp(18px,2.4vw,23px);color:#102b55}
+.rules-heading p{margin:0}
+.rules-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#0891b2,#2563eb);color:#fff;font-size:23px;font-weight:900;box-shadow:0 6px 16px #2563eb33}
+.rules-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.rule-item{display:flex;gap:11px;align-items:flex-start;padding:13px;border:1px solid #dbeafe;border-radius:13px;background:#ffffffd9}
+.rule-number{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:10px;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:900}
+.rule-item strong{display:block;color:#17345f;font-size:14px;margin:1px 0 5px}
+.rule-item p{margin:0;color:#475569;font-size:13px;line-height:1.55}
+.rules-note{margin:14px 0 0;padding:11px 13px;border-radius:10px;background:#e0f2fe;color:#075985;font-size:13px;font-weight:600}
+@media(max-width:620px){.rules-grid{grid-template-columns:1fr}.rule-item{padding:11px}}
 /* Use the existing academy logo in the welcome emblem */
 .welcome-logo{display:block;width:clamp(74px,9vw,112px);height:clamp(74px,9vw,112px);object-fit:contain;border-radius:50%;padding:5px;background:#ffffff;border:2px solid #67e8f9;box-shadow:0 0 22px #22d3ee55;margin-bottom:8px}.emblem-ring small{position:relative;z-index:2}
 </style></head><body>
 <header><h1>NAMAMI DIGITAL SKILLS ACADEMY</h1><p>Sohagpur | Basic Computer Course (BCC)</p><p>Online MCQ Examination · कुल समय: 26 मिनट · कुल प्रश्न: 26</p></header>
 <main class="wrap">
 <section class="welcome-hero"><div class="welcome-copy"><div class="welcome-eyebrow">● OFFICIAL ONLINE EXAM PORTAL</div><h2>Welcome to Your <span>Digital Future</span></h2><p>आपकी मेहनत, आपकी पहचान। आइए अपनी कंप्यूटर स्किल्स को साबित करें।</p><div class="welcome-tags"><span>Basic Computer Course</span><span>26 Minutes</span><span>26 Questions</span></div><div class="welcome-steps"><span>01 · Details भरें</span><i></i><span>02 · Exam दें</span><i></i><span>03 · Result देखें</span></div></div><div class="welcome-emblem"><div class="emblem-ring"><img class="welcome-logo" src="logo-real.jpg" alt="Namami Digital Skills Academy Logo"><small>SKILLS · SUCCESS</small></div><span class="chip chip-a">HTML</span><span class="chip chip-b">AI</span><span class="chip chip-c">1010</span></div></section>
+<section class="exam-rules panel" aria-label="Exam instructions">
+  <div class="rules-heading"><span class="rules-icon">✓</span><div><h2>परीक्षा के नियम / Exam Instructions</h2><p class="muted">शुरू करने से पहले इन जरूरी बातों को पढ़ लें।</p></div></div>
+  <div class="rules-grid">
+    <div class="rule-item"><span class="rule-number">01</span><div><strong>समय सीमा / Time Limit</strong><p>परीक्षा के लिए कुल <b>26 मिनट</b> मिलेंगे। समय शुरू होने के बाद चलता रहेगा।</p></div></div>
+    <div class="rule-item"><span class="rule-number">02</span><div><strong>प्रश्न / Questions</strong><p>कुल <b>26 MCQ प्रश्न</b> होंगे। हर प्रश्न ध्यान से पढ़कर सही विकल्प चुनें।</p></div></div>
+    <div class="rule-item"><span class="rule-number">03</span><div><strong>सही विवरण / Correct Details</strong><p>अपना नाम, रोल नंबर, मोबाइल और ईमेल सही भरें ताकि रिकॉर्ड सही बने।</p></div></div>
+    <div class="rule-item"><span class="rule-number">04</span><div><strong>परीक्षा के दौरान / During Exam</strong><p>पेज को रिफ्रेश या बंद न करें। सभी उत्तर जाँचकर समय समाप्त होने से पहले Submit करें।</p></div></div>
+  </div>
+  <p class="rules-note">💡 टिप: शांत रहें, प्रश्न ध्यान से पढ़ें और अपने ज्ञान पर भरोसा रखें। शुभकामनाएँ!</p>
+</section>
 <section id="studentForm" class="panel"><h2>विद्यार्थी विवरण / Student Details</h2><p class="muted">कृपया सभी विवरण सही भरें। परीक्षा शुरू होने के बाद 26 मिनट का समय चलेगा।</p><div class="grid">
 <div><label for="name">पूरा नाम / Full Name *</label><input id="name" maxlength="100" required autocomplete="name"></div>
 <div><label for="roll">रोल नंबर / Roll Number *</label><input id="roll" maxlength="40" required></div>
