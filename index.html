@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BCC Exam | Namami Digital Skills Academy</title>
+<style>
+:root{--navy:#10264d;--blue:#2563eb;--teal:#0f9f91;--bg:#f2f6fc;--ink:#172033}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,"Noto Sans Devanagari",sans-serif;color:var(--ink)}header{background:linear-gradient(120deg,#10264d,#2563eb);color:#fff;padding:22px 16px;text-align:center}header h1{margin:0 0 7px;font-size:clamp(20px,4vw,30px)}header p{margin:4px}.wrap{max-width:950px;margin:22px auto;padding:0 14px}.panel{background:white;border-radius:16px;padding:22px;margin-bottom:16px;box-shadow:0 8px 26px #122b5010}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}label{display:block;font-weight:700;font-size:14px;margin-bottom:6px}input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:16px}button{border:0;border-radius:10px;padding:12px 18px;background:var(--blue);color:#fff;font-size:16px;font-weight:700;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.muted{color:#64748b}.topline{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.timer{font-weight:800;color:#b91c1c;font-size:22px}.q{border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin:14px 0}.q h3{font-size:17px;margin:0 0 8px}.unit{font-size:12px;color:#2563eb;font-weight:800;text-transform:uppercase}.opt{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:8px;margin-top:6px;background:#f8fafc;font-weight:400}.opt input{width:auto;margin-top:3px}.hidden{display:none!important}.score{font-size:38px;font-weight:900;color:#0f766e}.correct{background:#dcfce7}.wrong{background:#fee2e2}footer{text-align:center;padding:20px;color:#64748b;font-size:13px}@media print{header,.no-print,#studentForm,#examControls{display:none!important}body{background:white}.panel{box-shadow:none}}
+</style></head><body>
+<header><h1>NAMAMI DIGITAL SKILLS ACADEMY</h1><p>Sohagpur | Basic Computer Course (BCC)</p><p>Online MCQ Examination · कुल समय: 26 मिनट · कुल प्रश्न: 26</p></header>
+<main class="wrap">
+<section id="studentForm" class="panel"><h2>विद्यार्थी विवरण / Student Details</h2><p class="muted">कृपया सभी विवरण सही भरें। परीक्षा शुरू होने के बाद 26 मिनट का समय चलेगा।</p><div class="grid">
+<div><label for="name">पूरा नाम / Full Name *</label><input id="name" maxlength="100" required autocomplete="name"></div>
+<div><label for="roll">रोल नंबर / Roll Number *</label><input id="roll" maxlength="40" required></div>
+<div><label for="mobile">मोबाइल नंबर / Mobile *</label><input id="mobile" maxlength="20" required inputmode="tel"></div>
+<div><label for="email">ईमेल / Email *</label><input id="email" type="email" maxlength="254" required autocomplete="email"></div>
+</div><p><button id="startBtn">Start Exam / परीक्षा शुरू करें</button></p><p id="formMsg" role="status" class="muted"></p></section>
+<section id="examPanel" class="panel hidden"><div class="topline"><div><strong id="candidate"></strong><div class="muted">हर प्रश्न में एक विकल्प चुनें। / Select one answer per question.</div></div><div class="timer" id="timer">26:00</div></div><div id="questions"></div><div id="examControls" class="topline"><span class="muted" id="progress">0/26 answered</span><button id="submitBtn">Submit Exam / परीक्षा जमा करें</button></div><p id="examMsg" role="status"></p></section>
+<section id="resultPanel" class="panel hidden"><h2>Result / परिणाम</h2><div class="score" id="score"></div><p id="resultText"></p><p id="resultMeta" class="muted"></p><div class="topline no-print"><button onclick="window.print()">Print Scorecard / प्रिंट</button><button id="reviewToggle" style="background:#0f766e">Show Answer Review / उत्तर देखें</button></div><div id="review" class="hidden"></div><p class="muted">अपना access code सुरक्षित रखें; इससे आप बाद में अपना review फिर देख सकते हैं।</p><p id="accessInfo"></p><button class="no-print" id="downloadBtn" style="background:#334155">Download Scorecard JSON</button></section>
+</main><footer>Developed by Mr. Pawan Soni · Namami Digital Skills Academy, Sohagpur</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://jnfteavjywiqoatuwwhx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_n8VJNBBkRO1u4btW9nWx3Q_d4NpxCWu";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let questions=[], startedAt=null, deadline=0, timerHandle=null, resultData=null, student={};
+const $=id=>document.getElementById(id);
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+async function loadQuestions(){
+ const {data,error}=await db.from('bcc_public_questions').select('id,unit_no,question_en,question_hi,options').order('id');
+ if(error) throw error;
+ if(!data||data.length!==26) throw new Error('प्रश्न बैंक उपलब्ध नहीं है। Teacher से संपर्क करें।');
+ questions=data;
+}
+$('startBtn').onclick=async()=>{
+ const name=$('name').value.trim(),roll=$('roll').value.trim(),mobile=$('mobile').value.trim(),email=$('email').value.trim();
+ if(!name||!roll||!mobile||!email||!/^\S+@\S+\.\S+$/.test(email)){ $('formMsg').textContent='सभी विवरण सही भरें। / Please complete all fields.';return;}
+ $('startBtn').disabled=true;$('formMsg').textContent='प्रश्न लोड हो रहे हैं…';
+ try{await loadQuestions();student={name,roll,mobile,email};startedAt=new Date().toISOString();deadline=Date.now()+26*60*1000;
+ $('candidate').textContent=name+' · Roll: '+roll;$('studentForm').classList.add('hidden');$('examPanel').classList.remove('hidden');renderQuestions();tick();timerHandle=setInterval(tick,1000);
+ }catch(e){$('formMsg').textContent='त्रुटि: '+e.message;$('startBtn').disabled=false;}
+};
+function renderQuestions(){ $('questions').innerHTML=questions.map((q,i)=>'<article class="q" id="q-'+q.id+'"><div class="unit">Unit '+String(q.unit_no).padStart(2,'0')+' · Question '+(i+1)+'</div><h3>'+escapeHtml(q.question_en)+'</h3><p>'+escapeHtml(q.question_hi)+'</p>'+q.options.map((o,j)=>'<label class="opt"><input type="radio" name="q'+q.id+'" value="'+j+'"><span>'+String.fromCharCode(65+j)+'. '+escapeHtml(o)+'</span></label>').join('')+'</article>').join('');
+ $('questions').addEventListener('change',updateProgress);updateProgress();}
+function updateProgress(){let n=questions.filter(q=>document.querySelector('input[name="q'+q.id+'"]:checked')).length;$('progress').textContent=n+'/26 answered';}
+function tick(){const left=Math.max(0,deadline-Date.now()),m=Math.floor(left/60000),s=Math.floor(left%60000/1000);$('timer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');if(left<=0){clearInterval(timerHandle);submitExam(true);}}
+$('submitBtn').onclick=()=>{const n=questions.filter(q=>document.querySelector('input[name="q'+q.id+'"]:checked')).length;if(n<26&&!confirm('आपने '+n+'/26 प्रश्नों के उत्तर दिए हैं। क्या जमा करना है?'))return;submitExam(false);};
+let submitting=false;
+async function submitExam(auto){if(submitting||!questions.length)return;submitting=true;$('submitBtn').disabled=true;$('examMsg').textContent=auto?'समय समाप्त! उत्तर जमा हो रहे हैं…':'उत्तर जमा हो रहे हैं…';
+try{const answers=questions.map(q=>({question_id:q.id,selected_option:Number(document.querySelector('input[name="q'+q.id+'"]:checked')?.value??0)}));
+const {data,error}=await db.rpc('bcc_submit_exam',{p_student_name:student.name,p_roll_number:student.roll,p_mobile:student.mobile,p_email:student.email,p_answers:answers,p_started_at:startedAt});
+if(error)throw error;resultData={...data,student_name:student.name,roll_number:student.roll,submitted_at:new Date().toISOString(),review:data.review||[]};
+$('examPanel').classList.add('hidden');$('resultPanel').classList.remove('hidden');$('score').textContent=data.score+' / '+data.total;$('resultText').textContent=(data.passed?'PASS':'KEEP PRACTICING')+' · '+Math.round(data.score/data.total*100)+'%';$('resultMeta').textContent='Student: '+student.name+' | Roll: '+student.roll+' | '+new Date().toLocaleString();
+$('accessInfo').textContent='Review access code: '+data.access_token+' · Attempt ID: '+data.attempt_id;renderReview(resultData.review);window.scrollTo(0,0);
+}catch(e){$('examMsg').textContent='जमा नहीं हो पाया: '+e.message+' · इंटरनेट जाँचकर दोबारा Submit करें।';$('submitBtn').disabled=false;submitting=false;}}
+function renderReview(review){$('review').innerHTML=review.map((r,i)=>'<article class="q '+(r.is_correct?'correct':'wrong')+'"><div class="unit">Unit '+r.unit_no+' · Question '+(i+1)+' · '+(r.is_correct?'Correct':'Incorrect')+'</div><h3>'+escapeHtml(r.question_en)+'</h3><p>'+escapeHtml(r.question_hi)+'</p><p>Your answer: <b>'+escapeHtml(r.options[r.selected_option])+'</b></p><p>Correct answer: <b>'+escapeHtml(r.options[r.correct_option])+'</b></p><p class="muted">'+escapeHtml(r.explanation_en)+' '+escapeHtml(r.explanation_hi)+'</p></article>').join('');}
+$('reviewToggle').onclick=()=>{$('review').classList.toggle('hidden');};
+$('downloadBtn').onclick=()=>{const blob=new Blob([JSON.stringify(resultData,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='BCC-scorecard-'+(student.roll||'student')+'.json';a.click();URL.revokeObjectURL(a.href);};
+</script></body></html>
