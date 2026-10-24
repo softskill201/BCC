@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Teacher Panel | Namami BCC</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f1f5f9;color:#172033;font-family:Arial,"Noto Sans Devanagari",sans-serif}header{padding:22px;background:linear-gradient(120deg,#10264d,#2563eb);color:white;text-align:center}main{max-width:1100px;margin:22px auto;padding:0 14px}.panel{background:#fff;padding:20px;border-radius:14px;box-shadow:0 8px 24px #0f172a0d;margin-bottom:16px}input{padding:11px;border:1px solid #cbd5e1;border-radius:8px;width:100%;margin:5px 0 12px}button{background:#2563eb;color:white;border:0;border-radius:8px;padding:11px 15px;font-weight:bold;cursor:pointer;margin:4px}button.secondary{background:#475569}button.danger{background:#b91c1c}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.row>div{flex:1;min-width:190px}.hidden{display:none!important}.muted{color:#64748b}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0;vertical-align:top}th{background:#eff6ff}td{overflow-wrap:anywhere}.tablewrap{overflow:auto}.status{padding:10px;background:#eff6ff;border-radius:8px}footer{text-align:center;color:#64748b;padding:20px}
+</style></head><body>
+<header><h1>NAMAMI DIGITAL SKILLS ACADEMY</h1><p>Teacher Result Panel · BCC Exam</p></header>
+<main>
+<section id="login" class="panel"><h2>Teacher Login / शिक्षक लॉगिन</h2><p class="muted">केवल अधिकृत शिक्षक खाते लॉगिन कर सकते हैं। पहले Supabase Auth में शिक्षक user बनाएँ और उसका user ID <code>bcc_teachers</code> में जोड़ें। निर्देश README में हैं।</p><label>Email</label><input id="email" type="email" autocomplete="username"><label>Password</label><input id="password" type="password" autocomplete="current-password"><button id="loginBtn">Login</button><p id="loginMsg" role="status"></p></section>
+<section id="dashboard" class="hidden">
+<div class="panel"><div class="row"><div><h2>Student Results</h2><p class="muted">Search by student name, roll number, email or mobile.</p></div><div><button id="refresh">Refresh</button><button id="export">Export CSV</button><button class="secondary" id="logout">Logout</button></div></div><input id="search" placeholder="Search student / roll / mobile / email"><p id="status" class="status" role="status">Results not loaded yet.</p><div class="tablewrap"><table><thead><tr><th>Submitted</th><th>Student</th><th>Roll</th><th>Contact</th><th>Score</th><th>Review</th></tr></thead><tbody id="rows"></tbody></table></div></div>
+<div id="reviewPanel" class="panel hidden"><h2>Answer Review</h2><p id="reviewStudent"></p><div class="tablewrap"><table><thead><tr><th>Q#</th><th>Question</th><th>Selected</th><th>Correct</th><th>Result</th></tr></thead><tbody id="reviewRows"></tbody></table></div></div>
+</section>
+</main><footer>Developed by Mr. Pawan Soni · Namami Digital Skills Academy, Sohagpur</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+const db=window.supabase.createClient("https://jnfteavjywiqoatuwwhx.supabase.co","sb_publishable_n8VJNBBkRO1u4btW9nWx3Q_d4NpxCWu");
+const $=id=>document.getElementById(id);let allResults=[];
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+async function showSession(){const {data:{session}}=await db.auth.getSession();if(session){$("login").classList.add("hidden");$("dashboard").classList.remove("hidden");await loadResults();}}
+$("loginBtn").onclick=async()=>{ $("loginMsg").textContent="Signing in…";const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){$("loginMsg").textContent="Login failed: "+error.message;return;}await showSession();};
+$("logout").onclick=async()=>{await db.auth.signOut();$("dashboard").classList.add("hidden");$("login").classList.remove("hidden");};
+$("refresh").onclick=loadResults;
+async function loadResults(){ $("status").textContent="Loading…";const {data,error}=await db.from("bcc_attempts").select("id,student_name,roll_number,mobile,email,score,total,started_at,submitted_at").order("submitted_at",{ascending:false}).limit(500);
+if(error){$("status").textContent="Could not load results: "+error.message+" (Check teacher access in bcc_teachers.)";return;}allResults=data||[];renderRows();}
+function renderRows(){const term=$("search").value.trim().toLowerCase();const rows=allResults.filter(r=>[r.student_name,r.roll_number,r.mobile,r.email].some(v=>String(v||"").toLowerCase().includes(term)));
+$("rows").innerHTML=rows.map(r=>'<tr><td>'+esc(new Date(r.submitted_at).toLocaleString())+'</td><td>'+esc(r.student_name)+'</td><td>'+esc(r.roll_number)+'</td><td>'+esc(r.mobile)+'<br>'+esc(r.email)+'</td><td><b>'+r.score+'/'+r.total+'</b> ('+Math.round(r.score/r.total*100)+'%)</td><td><button data-review="'+esc(r.id)+'">View</button></td></tr>').join("");
+$("status").textContent=rows.length+" result(s) shown · "+allResults.length+" loaded";document.querySelectorAll("[data-review]").forEach(b=>b.onclick=()=>loadReview(b.dataset.review));}
+$("search").addEventListener("input",renderRows);
+async function loadReview(id){const r=allResults.find(x=>x.id===id);const {data,error}=await db.from("bcc_answers").select("question_id,selected_option,correct_option,is_correct").eq("attempt_id",id).order("question_id");
+if(error){alert("Could not load answer review: "+error.message);return;}const {data:qs,error:qe}=await db.from("bcc_questions").select("id,question_en,question_hi,options").in("id",(data||[]).map(a=>a.question_id)).order("id");
+if(qe){alert(qe.message);return;}const map=new Map((qs||[]).map(q=>[q.id,q]));$("reviewStudent").textContent=r.student_name+" · Roll "+r.roll_number+" · "+r.score+"/"+r.total;
+$("reviewRows").innerHTML=(data||[]).map((a,i)=>{const q=map.get(a.question_id)||{};return '<tr><td>'+(i+1)+'</td><td>'+esc(q.question_en)+'<br>'+esc(q.question_hi)+'</td><td>'+esc(a.selected_option<0?"Not answered":q.options?.[a.selected_option])+'</td><td>'+esc(q.options?.[a.correct_option])+'</td><td>'+(a.is_correct?"Correct":"Incorrect")+'</td></tr>';}).join("");$("reviewPanel").classList.remove("hidden");$("reviewPanel").scrollIntoView({behavior:"smooth"});}
+function csvCell(v){return '"'+String(v??"").replace(/"/g,'""')+'"';}
+$("export").onclick=()=>{const head=["Submitted At","Student Name","Roll Number","Mobile","Email","Score","Total"];const lines=[head,...allResults.map(r=>[r.submitted_at,r.student_name,r.roll_number,r.mobile,r.email,r.score,r.total])].map(row=>row.map(csvCell).join(",")).join("\r\n");const blob=new Blob(["\uFEFF"+lines],{type:"text/csv;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="namami-bcc-results.csv";a.click();URL.revokeObjectURL(a.href);};
+db.auth.onAuthStateChange((_event,session)=>{if(!session){$("dashboard").classList.add("hidden");$("login").classList.remove("hidden");}});
+showSession();
+</script></body></html>
