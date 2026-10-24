@@ -9,6 +9,7 @@ Teacher panel: **[Open teacher.html](https://softskill201.github.io/BCC/teacher.
 - Student name, roll number, mobile and email
 - Server-side score calculation and saved attempt/answer records
 - Answer review, printable scorecard, JSON scorecard download
+- QR code on the personal report card linking to the public [online verification page](https://softskill201.github.io/BCC/verify.html)
 - Teacher login, search, review and CSV export
 - Supabase Row Level Security protects student records
 
@@ -43,6 +44,7 @@ Only users explicitly added to `public.bcc_teachers` can query student result re
 ## Important notes
 - Student records are private under Row Level Security; anonymous browsers can only read question text/options and submit through a database function that calculates the score on the server.
 - The question key is stored server-side and is not included in the public question view.
+- The public report verification endpoint returns only report ID, student name, marks, total, and submission time; it does not expose contact details, photos, or question-wise answers.
 - A student receives a one-time review access code after submission. Ask students to keep it private.
 - The question bank currently has 26 sample BCC questions; review them against your institute's final syllabus before using for a formal examination.
 - The exam page uses a CDN for the Supabase JavaScript library and needs internet access while taking the exam. It is not an offline exam.
