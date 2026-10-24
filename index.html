@@ -120,7 +120,25 @@ async function loadQuestions(){
 let cameraStream=null;
 function stopStudentCamera(){if(cameraStream){cameraStream.getTracks().forEach(track=>track.stop());cameraStream=null;}$("cameraVideo").srcObject=null;$("cameraBox").classList.add("hidden");$("cameraBtn").disabled=false;$("cameraBtn").textContent="📷 Live Camera से फोटो लें";}
 async function setStudentPhoto(data){student.photoData=data||"";if(data){$("photoPreview").src=data;$("photoPreview").classList.remove("hidden");$("removePhotoBtn").classList.remove("hidden");}else{$("photoPreview").removeAttribute("src");$("photoPreview").classList.add("hidden");$("removePhotoBtn").classList.add("hidden");}}
-$("cameraBtn").addEventListener("click",async()=>{try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error("इस browser में camera उपलब्ध नहीं है। HTTPS website या Chrome में खोलें।");cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:640},height:{ideal:480}},audio:false});$("cameraVideo").srcObject=cameraStream;$("cameraBox").classList.remove("hidden");$("cameraBtn").disabled=true;$("cameraBtn").textContent="Camera चालू है";await $("cameraVideo").play();}catch(err){stopStudentCamera();$("formMsg").textContent="Camera नहीं खुला: "+(err.message||"Camera permission दें या Gallery विकल्प चुनें।");}});
+$("cameraBtn").addEventListener("click",async()=>{
+ try{
+  $("formMsg").textContent="कैमरा अनुमति का इंतज़ार है…";
+  if(!window.isSecureContext)throw new Error("यह पेज सुरक्षित HTTPS पर नहीं खुला है। https://softskill201.github.io/BCC/ खोलें।");
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error("इस browser में camera API उपलब्ध नहीं है। Chrome/Edge में HTTPS website खोलें।");
+  try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"user"},width:{ideal:640},height:{ideal:480}},audio:false});}
+  catch(firstError){cameraStream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});}
+  $("cameraVideo").srcObject=cameraStream;
+  $("cameraBox").classList.remove("hidden");
+  $("cameraBtn").disabled=true;
+  $("cameraBtn").textContent="Camera चालू है";
+  await $("cameraVideo").play();
+  $("formMsg").textContent="कैमरा चालू है। फोटो लेने के लिए Capture दबाएँ।";
+ }catch(err){
+  stopStudentCamera();
+  const messages={NotAllowedError:"Camera permission Block है। Address bar के lock/site settings में Camera को Allow करें, फिर page refresh करें।",PermissionDeniedError:"Camera permission Allow करें और दोबारा कोशिश करें।",NotFoundError:"इस device पर camera नहीं मिला। Gallery से फोटो चुनें।",NotReadableError:"Camera किसी दूसरी app में उपयोग हो रहा है। Zoom/Teams/Camera app बंद करके फिर कोशिश करें।",OverconstrainedError:"यह camera setting support नहीं करता। दोबारा कोशिश करें।",SecurityError:"Browser security ने camera रोक दिया। HTTPS website खोलें।"};
+  $("formMsg").textContent="कैमरा नहीं खुला: "+(messages[err.name]||err.message||"Camera permission दें या Gallery विकल्प चुनें।")+" (Error: "+(err.name||"unknown")+")";
+ }
+});
 $("captureBtn").addEventListener("click",async()=>{try{const video=$("cameraVideo");if(!video.videoWidth)throw new Error("Camera तैयार नहीं है। एक क्षण बाद फिर कोशिश करें।");const canvas=document.createElement("canvas"),scale=Math.min(1,420/Math.max(video.videoWidth,video.videoHeight));canvas.width=Math.round(video.videoWidth*scale);canvas.height=Math.round(video.videoHeight*scale);const ctx=canvas.getContext("2d");ctx.translate(canvas.width,0);ctx.scale(-1,1);ctx.drawImage(video,0,0,canvas.width,canvas.height);await setStudentPhoto(canvas.toDataURL("image/jpeg",.78));$("photo").value="";stopStudentCamera();$("formMsg").textContent="फोटो तैयार है। अब परीक्षा शुरू कर सकते हैं।";}catch(err){$("formMsg").textContent=err.message;}});
 $("cancelCameraBtn").addEventListener("click",stopStudentCamera);
 $("removePhotoBtn").addEventListener("click",()=>{setStudentPhoto("");$("photo").value="";$("formMsg").textContent="फोटो हटा दी गई।";});
