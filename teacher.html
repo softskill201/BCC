@@ -2,11 +2,45 @@
 <html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Teacher Panel | Namami BCC</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f1f5f9;color:#172033;font-family:Arial,"Noto Sans Devanagari",sans-serif}header{padding:22px;background:linear-gradient(120deg,#10264d,#2563eb);color:white;text-align:center}main{max-width:1100px;margin:22px auto;padding:0 14px}.panel{background:#fff;padding:20px;border-radius:14px;box-shadow:0 8px 24px #0f172a0d;margin-bottom:16px}input{padding:11px;border:1px solid #cbd5e1;border-radius:8px;width:100%;margin:5px 0 12px}button{background:#2563eb;color:white;border:0;border-radius:8px;padding:11px 15px;font-weight:bold;cursor:pointer;margin:4px}button.secondary{background:#475569}button.danger{background:#b91c1c}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.row>div{flex:1;min-width:190px}.hidden{display:none!important}.muted{color:#64748b}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0;vertical-align:top}th{background:#eff6ff}td{overflow-wrap:anywhere}.tablewrap{overflow:auto}.status{padding:10px;background:#eff6ff;border-radius:8px}footer{text-align:center;color:#64748b;padding:20px}
+
+/* Premium teacher dashboard */
+body{background:radial-gradient(circle at top right,#dbeafe 0,transparent 32%),#edf4ff;color:#10264d}
+header{position:relative;overflow:hidden;padding:24px 16px 28px;background:linear-gradient(115deg,#041a3d 0%,#073c87 55%,#1767df 100%);box-shadow:0 10px 32px #05265a30}
+header:after{content:"";position:absolute;width:280px;height:280px;border:1px solid #ffffff22;border-radius:50%;right:-80px;top:-160px;box-shadow:0 0 0 28px #ffffff08,0 0 0 60px #ffffff06;pointer-events:none}
+header img{width:95px!important;max-width:32vw!important;filter:drop-shadow(0 8px 12px #0005)!important}
+header h1{letter-spacing:.5px;text-shadow:0 2px 12px #0003}
+main{max-width:1450px;margin:28px auto}
+.panel{border:1px solid #ffffffd9;border-radius:20px;padding:clamp(16px,2.4vw,26px);box-shadow:0 14px 40px #173b7212}
+.panel h2{color:#092b61}
+input{background:#fbfdff;border:1px solid #c6d7f3;transition:.2s}
+input:focus{outline:3px solid #1473f926;border-color:#1473f9}
+button{background:linear-gradient(135deg,#1678ff,#1457d9);box-shadow:0 5px 12px #1457d922;transition:transform .15s,box-shadow .15s}
+button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #1457d933}
+button.secondary{background:linear-gradient(135deg,#64748b,#334155)}
+button.danger{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+table{font-size:13px}th{background:#eaf2ff;color:#12376e;white-space:nowrap}td{background:#fff}tr:hover td{background:#f6faff}
+.status{background:#eef5ff;border:1px solid #d8e7ff;color:#294b7d;padding:12px;border-radius:12px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.stat{display:flex;gap:13px;align-items:center;padding:18px;border-radius:17px;background:white;border:1px solid #dbeafe;box-shadow:0 8px 22px #173b720a}
+.stat .bubble{width:46px;height:46px;display:grid;place-items:center;border-radius:50%;background:#dbeafe;color:#1260d7;font-size:22px;font-weight:900;flex-shrink:0}
+.stat:nth-child(2) .bubble{background:#d1fae5;color:#059669}.stat:nth-child(3) .bubble{background:#fee2e2;color:#dc2626}.stat:nth-child(4) .bubble{background:#ede9fe;color:#7c3aed}
+.stat strong{display:block;font-size:27px;color:#102e61}.stat span{font-size:13px;color:#64748b}
+.tablewrap{border:1px solid #e2ebf8;border-radius:12px}
+#reviewPanel{border-top:4px solid #7c3aed}
+footer{padding:28px 16px;color:#647da2}
+@media(max-width:800px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.row>div{min-width:150px}}
+@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.stat{padding:12px;gap:8px}.stat .bubble{width:36px;height:36px;font-size:18px}.stat strong{font-size:22px}.row{align-items:stretch}.row button{margin:3px 1px}}
 </style></head><body>
-<header><img src="logo.png" alt="Namami Digital Skills Academy Logo" style="width:110px;max-width:35vw;height:auto;display:block;margin:0 auto 10px;filter:drop-shadow(0 2px 4px #0003)"><h1>NAMAMI DIGITAL SKILLS ACADEMY</h1><p>Teacher Result Panel · BCC Exam</p></header>
+<header><img src="logo.svg" alt="Namami Digital Skills Academy Logo" style="width:110px;max-width:35vw;height:auto;display:block;margin:0 auto 10px;filter:drop-shadow(0 2px 4px #0003)"><h1>NAMAMI DIGITAL SKILLS ACADEMY</h1><p>Teacher Result Panel · BCC Exam</p></header>
 <main>
 <section id="login" class="panel"><h2>Teacher Login / शिक्षक लॉगिन</h2><p class="muted">केवल अधिकृत शिक्षक खाते लॉगिन कर सकते हैं। पहले Supabase Auth में शिक्षक user बनाएँ और उसका user ID <code>bcc_teachers</code> में जोड़ें। निर्देश README में हैं।</p><label>Email</label><input id="email" type="email" autocomplete="username"><label>Password</label><input id="password" type="password" autocomplete="current-password"><button id="loginBtn">Login</button><p id="loginMsg" role="status"></p></section>
 <section id="dashboard" class="hidden">
+<div class="stats">
+ <div class="stat"><div class="bubble">♟</div><div><strong id="totalStudents">0</strong><span>Total Students</span></div></div>
+ <div class="stat"><div class="bubble">✓</div><div><strong id="passedCount">0</strong><span>Passed</span></div></div>
+ <div class="stat"><div class="bubble">×</div><div><strong id="failedCount">0</strong><span>Failed</span></div></div>
+ <div class="stat"><div class="bubble">▥</div><div><strong id="totalMarks">0</strong><span>Marks Scored</span></div></div>
+</div>
 <div class="panel"><div class="row"><div><h2>Student Results</h2><p class="muted">Search by student name, roll number, email or mobile.</p></div><div><button id="refresh">Refresh</button><button id="export">Export CSV</button><button class="secondary" id="logout">Logout</button></div></div><input id="search" placeholder="Search student / roll / mobile / email"><p id="status" class="status" role="status">Results not loaded yet.</p><div class="tablewrap"><table><thead><tr><th>Submitted</th><th>Student</th><th>Roll</th><th>Contact</th><th>Score</th><th>Review</th></tr></thead><tbody id="rows"></tbody></table></div></div>
 <div id="reviewPanel" class="panel hidden"><h2>Answer Review</h2><p id="reviewStudent"></p><div class="tablewrap"><table><thead><tr><th>Q#</th><th>Question</th><th>Selected</th><th>Correct</th><th>Result</th></tr></thead><tbody id="reviewRows"></tbody></table></div></div>
 </section>
@@ -20,7 +54,13 @@ $("loginBtn").onclick=async()=>{ $("loginMsg").textContent="Signing in…";const
 $("logout").onclick=async()=>{await db.auth.signOut();$("dashboard").classList.add("hidden");$("login").classList.remove("hidden");};
 $("refresh").onclick=loadResults;
 async function loadResults(){ $("status").textContent="Loading…";const {data,error}=await db.from("bcc_attempts").select("id,student_name,roll_number,mobile,email,score,total,started_at,submitted_at").order("submitted_at",{ascending:false}).limit(500);
-if(error){$("status").textContent="Could not load results: "+error.message+" (Check teacher access in bcc_teachers.)";return;}allResults=data||[];renderRows();}
+if(error){$("status").textContent="Could not load results: "+error.message+" (Check teacher access in bcc_teachers.)";return;}allResults=data||[];updateStats();renderRows();}
+function updateStats(){
+ $("totalStudents").textContent=allResults.length;
+ $("passedCount").textContent=allResults.filter(r=>Number(r.score)/Math.max(1,Number(r.total))>=0.4).length;
+ $("failedCount").textContent=allResults.filter(r=>Number(r.score)/Math.max(1,Number(r.total))<0.4).length;
+ $("totalMarks").textContent=allResults.reduce((n,r)=>n+Number(r.score||0),0);
+}
 function renderRows(){const term=$("search").value.trim().toLowerCase();const rows=allResults.filter(r=>[r.student_name,r.roll_number,r.mobile,r.email].some(v=>String(v||"").toLowerCase().includes(term)));
 $("rows").innerHTML=rows.map(r=>'<tr><td>'+esc(new Date(r.submitted_at).toLocaleString())+'</td><td>'+esc(r.student_name)+'</td><td>'+esc(r.roll_number)+'</td><td>'+esc(r.mobile)+'<br>'+esc(r.email)+'</td><td><b>'+r.score+'/'+r.total+'</b> ('+Math.round(r.score/r.total*100)+'%)</td><td><button data-review="'+esc(r.id)+'">View</button></td></tr>').join("");
 $("status").textContent=rows.length+" result(s) shown · "+allResults.length+" loaded";document.querySelectorAll("[data-review]").forEach(b=>b.onclick=()=>loadReview(b.dataset.review));}
