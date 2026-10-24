@@ -5,10 +5,10 @@
 
 /* Premium teacher dashboard */
 body{background:radial-gradient(circle at top right,#dbeafe 0,transparent 32%),#edf4ff;color:#10264d}
-header{position:relative;overflow:hidden;padding:24px 16px 28px;background:linear-gradient(115deg,#041a3d 0%,#073c87 55%,#1767df 100%);box-shadow:0 10px 32px #05265a30}
+header{position:relative;overflow:hidden;padding:20px 28px;background:linear-gradient(115deg,#041a3d 0%,#073c87 55%,#1767df 100%);box-shadow:0 10px 32px #05265a30;display:flex;align-items:center;gap:22px;text-align:left}
 header:after{content:"";position:absolute;width:280px;height:280px;border:1px solid #ffffff22;border-radius:50%;right:-80px;top:-160px;box-shadow:0 0 0 28px #ffffff08,0 0 0 60px #ffffff06;pointer-events:none}
-header img{width:95px!important;max-width:32vw!important;filter:drop-shadow(0 8px 12px #0005)!important}
-header h1{letter-spacing:.5px;text-shadow:0 2px 12px #0003}
+header img{width:112px!important;height:124px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;max-width:32vw!important;filter:drop-shadow(0 8px 12px #0005)!important;flex-shrink:0}
+header h1{letter-spacing:.5px;text-shadow:0 2px 12px #0003;margin:0 0 8px}header .academy-brand{min-width:0;flex:1}header .academy-brand .goldline{font-size:clamp(15px,2vw,21px);font-weight:900;color:#ffd45f;letter-spacing:.5px}header .academy-brand p{margin:7px 0 0;color:#e4efff}header .hero-title{padding-left:22px;border-left:1px solid #ffffff55;min-width:220px}header .hero-title h2{margin:0 0 9px;font-size:clamp(18px,2.5vw,28px)}header .hero-pill{display:inline-block;border-radius:30px;background:linear-gradient(120deg,#1678ff,#0961d5);padding:7px 18px;font-weight:900}header .motto{margin-left:auto;max-width:220px;text-align:center;color:#eaf1ff;line-height:1.6;font-size:14px}
 main{max-width:1450px;margin:28px auto}
 .panel{border:1px solid #ffffffd9;border-radius:20px;padding:clamp(16px,2.4vw,26px);box-shadow:0 14px 40px #173b7212}
 .panel h2{color:#092b61}
@@ -28,10 +28,10 @@ table{font-size:13px}th{background:#eaf2ff;color:#12376e;white-space:nowrap}td{b
 .tablewrap{border:1px solid #e2ebf8;border-radius:12px}
 #reviewPanel{border-top:4px solid #7c3aed}
 footer{padding:28px 16px;color:#647da2}
-@media(max-width:800px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.row>div{min-width:150px}}
-@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.stat{padding:12px;gap:8px}.stat .bubble{width:36px;height:36px;font-size:18px}.stat strong{font-size:22px}.row{align-items:stretch}.row button{margin:3px 1px}}
+@media(max-width:800px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.row>div{min-width:150px}header{gap:12px;padding:16px}header img{width:78px!important;height:88px}header .hero-title{min-width:0;padding-left:12px}header .motto{display:none}}
+@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.stat{padding:12px;gap:8px}.stat .bubble{width:36px;height:36px;font-size:18px}.stat strong{font-size:22px}.row{align-items:stretch}.row button{margin:3px 1px}header{flex-wrap:wrap}header .academy-brand{flex:1}header .hero-title{width:100%;border-left:0;border-top:1px solid #ffffff55;padding:12px 0 0}header h1{font-size:20px}}
 </style></head><body>
-<header><img src="logo.svg" alt="Namami Digital Skills Academy Logo" style="width:110px;max-width:35vw;height:auto;display:block;margin:0 auto 10px;filter:drop-shadow(0 2px 4px #0003)"><h1>NAMAMI DIGITAL SKILLS ACADEMY</h1><p>Teacher Result Panel · BCC Exam</p></header>
+<header><img src="logo-real.jpg" alt="Namami Digital Skills Academy Logo"><div class="academy-brand"><h1>NAMAMI</h1><div class="goldline">DIGITAL SKILLS ACADEMY</div><p>Learn&nbsp; | &nbsp;Grow&nbsp; | &nbsp;Achieve</p></div><div class="hero-title"><h2>Teacher Result Panel</h2><span class="hero-pill">BCC Examination</span></div><div class="motto">विद्या ददाति विनयम्<br>विनयाद् याति पात्रताम्</div></header>
 <main>
 <section id="login" class="panel"><h2>Teacher Login / शिक्षक लॉगिन</h2><p class="muted">केवल अधिकृत शिक्षक खाते लॉगिन कर सकते हैं। पहले Supabase Auth में शिक्षक user बनाएँ और उसका user ID <code>bcc_teachers</code> में जोड़ें। निर्देश README में हैं।</p><label>Email</label><input id="email" type="email" autocomplete="username"><label>Password</label><input id="password" type="password" autocomplete="current-password"><button id="loginBtn">Login</button><p id="loginMsg" role="status"></p></section>
 <section id="dashboard" class="hidden">
