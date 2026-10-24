@@ -78,7 +78,7 @@ $('submitBtn').onclick=()=>{const n=questions.filter(q=>document.querySelector('
 let submitting=false;
 async function submitExam(auto){if(submitting||!questions.length)return;submitting=true;$('submitBtn').disabled=true;$('examMsg').textContent=auto?'समय समाप्त! उत्तर जमा हो रहे हैं…':'उत्तर जमा हो रहे हैं…';
 try{const answers=questions.map(q=>({question_id:q.id,selected_option:Number(document.querySelector('input[name="q'+q.id+'"]:checked')?.value??-1)}));
-const {data,error}=await db.rpc('bcc_submit_exam',{p_student_name:student.name,p_roll_number:student.roll,p_mobile:student.mobile,p_email:student.email,p_answers:answers,p_started_at:startedAt});
+const {data,error}=await db.rpc('bcc_submit_exam',{p_student_name:student.name,p_roll_number:student.roll,p_mobile:student.mobile,p_email:student.email,p_answers:answers,p_started_at:startedAt,p_student_photo_data:student.photoData||null});
 if(error)throw error;resultData={...data,student_name:student.name,roll_number:student.roll,submitted_at:new Date().toISOString(),review:data.review||[]};
 $('examPanel').classList.add('hidden');$('resultPanel').classList.remove('hidden');$('score').textContent=data.score+' / '+data.total;$('resultText').textContent=(data.passed?'PASS':'KEEP PRACTICING')+' · '+Math.round(data.score/data.total*100)+'%';$('resultMeta').textContent='Student: '+student.name+' | Roll: '+student.roll+' | '+new Date().toLocaleString();
 $('accessInfo').textContent='Review access code: '+data.access_token+' · Attempt ID: '+data.attempt_id;renderReview(resultData.review);window.scrollTo(0,0);
