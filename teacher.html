@@ -30,6 +30,26 @@ table{font-size:13px}th{background:#eaf2ff;color:#12376e;white-space:nowrap}td{b
 footer{padding:28px 16px;color:#647da2}
 @media(max-width:800px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.row>div{min-width:150px}header{gap:12px;padding:16px}header img{width:78px!important;height:88px}header .hero-title{min-width:0;padding-left:12px}header .motto{display:none}}
 @media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.stat{padding:12px;gap:8px}.stat .bubble{width:36px;height:36px;font-size:18px}.stat strong{font-size:22px}.row{align-items:stretch}.row button{margin:3px 1px}header{flex-wrap:wrap}header .academy-brand{flex:1}header .hero-title{width:100%;border-left:0;border-top:1px solid #ffffff55;padding:12px 0 0}header h1{font-size:20px}}
+
+/* Animated tech atmosphere + premium teacher login */
+body{position:relative;isolation:isolate;overflow-x:hidden;background:#07152e}
+body:before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(ellipse at 12% 18%,#0d5d9e88 0,transparent 34%),radial-gradient(ellipse at 88% 34%,#5427a855 0,transparent 32%),radial-gradient(ellipse at 50% 100%,#063e7988 0,transparent 45%),linear-gradient(135deg,#041126,#071b3a 50%,#07122a);background-size:140% 140%;animation:teacherAmbient 18s ease-in-out infinite alternate}
+body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.16;background-image:linear-gradient(#65caff22 1px,transparent 1px),linear-gradient(90deg,#65caff22 1px,transparent 1px);background-size:42px 42px;animation:teacherGrid 32s linear infinite}
+@keyframes teacherAmbient{to{background-position:100% 90%}}@keyframes teacherGrid{to{background-position:84px 84px}}
+header{isolation:isolate;border-bottom:1px solid #6bbdff55}
+header:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,transparent 25%,#55caff12 48%,transparent 68%);background-size:220% 100%;animation:teacherShimmer 9s linear infinite}
+@keyframes teacherShimmer{from{background-position:200% 0}to{background-position:-20% 0}}
+#login{position:relative;overflow:hidden;max-width:680px;margin:46px auto 26px;padding:clamp(22px,4vw,38px);border-radius:24px;background:linear-gradient(145deg,#fffffffa,#f2f7fffa);border:1px solid #a8ceff88;box-shadow:0 24px 70px #0004;backdrop-filter:blur(14px)}
+#login:before{content:"SECURE ACCESS  •  NAMAMI BCC";display:inline-block;padding:7px 11px;border-radius:30px;background:#e7f1ff;color:#1756a6;font-size:10px;font-weight:900;letter-spacing:1.4px;margin-bottom:14px}
+#login h2{font-size:clamp(23px,4vw,30px);margin:0 0 10px;color:#082d65}
+#login .muted{line-height:1.7;color:#617696}
+#login label{display:block;margin-top:15px;color:#203d6b;font-size:13px;font-weight:800}
+#login input{min-height:49px;border-radius:12px;background:#f8fbff;border:1px solid #cbdcf5;margin-top:7px}
+#login input:focus{outline:0;box-shadow:0 0 0 4px #2483ff20;border-color:#2483ff;background:#fff}
+#loginBtn{width:100%;margin:14px 0 5px;padding:14px;border-radius:12px;background:linear-gradient(110deg,#0879ff,#5145d9,#0879ff);background-size:200% 100%;animation:teacherButton 6s linear infinite}
+@keyframes teacherButton{to{background-position:200% 0}}
+#loginMsg{overflow-wrap:anywhere}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style></head><body>
 <header><img src="logo-real.jpg" alt="Namami Digital Skills Academy Logo"><div class="academy-brand"><h1>NAMAMI</h1><div class="goldline">DIGITAL SKILLS ACADEMY</div><p>Learn&nbsp; | &nbsp;Grow&nbsp; | &nbsp;Achieve</p></div><div class="hero-title"><h2>Teacher Result Panel</h2><span class="hero-pill">BCC Examination</span></div><div class="motto">विद्या ददाति विनयम्<br>विनयाद् याति पात्रताम्</div></header>
 <main>
