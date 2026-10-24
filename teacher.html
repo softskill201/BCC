@@ -62,7 +62,7 @@ header:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-
  <div class="stat"><div class="bubble">×</div><div><strong id="failedCount">0</strong><span>Failed</span></div></div>
  <div class="stat"><div class="bubble">▥</div><div><strong id="totalMarks">0</strong><span>Marks Scored</span></div></div>
 </div>
-<div class="panel"><div class="row"><div><h2>Student Results</h2><p class="muted">Search by student name, roll number, email or mobile.</p></div><div><button id="refresh">Refresh</button><button id="export">Export CSV</button><button class="secondary" id="logout">Logout</button></div></div><div class="filters"><input id="search" placeholder="Search student / roll / mobile / email"><select id="resultFilter" aria-label="Filter by result status"><option value="all">All Results</option><option value="passed">Passed (40%+)</option><option value="failed">Needs Practice (Below 40%)</option></select></div><p id="status" class="status" role="status">Results not loaded yet.</p><div class="tablewrap"><table><thead><tr><th>Submitted</th><th>Student</th><th>Roll</th><th>Contact</th><th>Score</th><th>Review</th><th>Manage</th></tr></thead><tbody id="rows"></tbody></table></div></div>
+<div class="panel"><div class="row"><div><h2>Student Results</h2><p class="muted">Search by student name, roll number, email or mobile.</p></div><div><button id="refresh">Refresh</button><button id="export">Export All CSV</button><button id="exportFiltered" style="background:linear-gradient(135deg,#059669,#047857)">Export Filtered CSV</button><button class="secondary" id="logout">Logout</button></div></div><div class="filters"><input id="search" placeholder="Search student / roll / mobile / email"><select id="resultFilter" aria-label="Filter by result status"><option value="all">All Results</option><option value="passed">Passed (40%+)</option><option value="failed">Needs Practice (Below 40%)</option></select><input id="dateFrom" type="date" aria-label="From submission date" title="From date"><input id="dateTo" type="date" aria-label="To submission date" title="To date"></div><p class="muted" style="margin:0 0 12px">Tip: Date range aur status filter lagakar sirf matching records export karein.</p><p id="status" class="status" role="status">Results not loaded yet.</p><div class="tablewrap"><table><thead><tr><th>Submitted</th><th>Student</th><th>Roll</th><th>Contact</th><th>Score</th><th>Review</th><th>Manage</th></tr></thead><tbody id="rows"></tbody></table></div></div>
 <div id="reviewPanel" class="panel hidden"><h2>Answer Review</h2><p id="reviewStudent"></p><div class="tablewrap"><table><thead><tr><th>Q#</th><th>Question</th><th>Selected</th><th>Correct</th><th>Result</th></tr></thead><tbody id="reviewRows"></tbody></table></div></div>
 </section>
 </main><footer>Developed by Mr. Pawan Soni · Namami Digital Skills Academy, Sohagpur</footer>
@@ -82,15 +82,21 @@ function updateStats(){
  $("failedCount").textContent=allResults.filter(r=>Number(r.score)/Math.max(1,Number(r.total))<0.4).length;
  $("totalMarks").textContent=allResults.reduce((n,r)=>n+Number(r.score||0),0);
 }
-function renderRows(){
+function getFilteredResults(){
 const term=$("search").value.trim().toLowerCase();
 const filter=$("resultFilter").value;
-const rows=allResults.filter(r=>{
+const from=$("dateFrom").value;
+const to=$("dateTo").value;
+return allResults.filter(r=>{
  const matchesTerm=[r.student_name,r.roll_number,r.mobile,r.email].some(v=>String(v||"").toLowerCase().includes(term));
  const pct=Number(r.score)/Math.max(1,Number(r.total));
  const matchesStatus=filter==="all"||(filter==="passed"?pct>=0.4:pct<0.4);
- return matchesTerm&&matchesStatus;
+ const day=String(r.submitted_at||"").slice(0,10);
+ return matchesTerm&&matchesStatus&&(!from||day>=from)&&(!to||day<=to);
 });
+}
+function renderRows(){
+const rows=getFilteredResults();
 $("rows").innerHTML=rows.map(r=>'<tr><td>'+esc(new Date(r.submitted_at).toLocaleString())+'</td><td>'+esc(r.student_name)+'</td><td>'+esc(r.roll_number)+'</td><td>'+esc(r.mobile)+'<br>'+esc(r.email)+'</td><td><b>'+r.score+'/'+r.total+'</b> ('+Math.round(r.score/r.total*100)+'%)</td><td><button data-review="'+esc(r.id)+'">View</button></td><td><button class="danger" data-delete="'+esc(r.id)+'">Remove</button></td></tr>').join("");
 $("status").textContent=rows.length+" result(s) shown · "+allResults.length+" loaded";
 document.querySelectorAll("[data-review]").forEach(b=>b.onclick=()=>loadReview(b.dataset.review));
@@ -107,12 +113,21 @@ $("reviewPanel").classList.add("hidden");await loadResults();
 }
 $("search").addEventListener("input",renderRows);
 $("resultFilter").addEventListener("change",renderRows);
+$("dateFrom").addEventListener("change",renderRows);
+$("dateTo").addEventListener("change",renderRows);
 async function loadReview(id){const r=allResults.find(x=>x.id===id);const {data,error}=await db.from("bcc_answers").select("question_id,selected_option,correct_option,is_correct").eq("attempt_id",id).order("question_id");
 if(error){alert("Could not load answer review: "+error.message);return;}const {data:qs,error:qe}=await db.from("bcc_questions").select("id,question_en,question_hi,options").in("id",(data||[]).map(a=>a.question_id)).order("id");
 if(qe){alert(qe.message);return;}const map=new Map((qs||[]).map(q=>[q.id,q]));$("reviewStudent").textContent=r.student_name+" · Roll "+r.roll_number+" · "+r.score+"/"+r.total;
 $("reviewRows").innerHTML=(data||[]).map((a,i)=>{const q=map.get(a.question_id)||{};return '<tr><td>'+(i+1)+'</td><td>'+esc(q.question_en)+'<br>'+esc(q.question_hi)+'</td><td>'+esc(a.selected_option<0?"Not answered":q.options?.[a.selected_option])+'</td><td>'+esc(q.options?.[a.correct_option])+'</td><td>'+(a.is_correct?"Correct":"Incorrect")+'</td></tr>';}).join("");$("reviewPanel").classList.remove("hidden");$("reviewPanel").scrollIntoView({behavior:"smooth"});}
 function csvCell(v){return '"'+String(v??"").replace(/"/g,'""')+'"';}
-$("export").onclick=()=>{const head=["Submitted At","Student Name","Roll Number","Mobile","Email","Score","Total"];const lines=[head,...allResults.map(r=>[r.submitted_at,r.student_name,r.roll_number,r.mobile,r.email,r.score,r.total])].map(row=>row.map(csvCell).join(",")).join("\r\n");const blob=new Blob(["\uFEFF"+lines],{type:"text/csv;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="namami-bcc-results.csv";a.click();URL.revokeObjectURL(a.href);};
+function exportResults(rows,filename){
+const head=["Submitted At","Student Name","Roll Number","Mobile","Email","Score","Total"];
+const lines=[head,...rows.map(r=>[r.submitted_at,r.student_name,r.roll_number,r.mobile,r.email,r.score,r.total])].map(row=>row.map(csvCell).join(",")).join("\r\n");
+const blob=new Blob(["\uFEFF"+lines],{type:"text/csv;charset=utf-8"});
+const a=document.createElement("a");const url=URL.createObjectURL(blob);a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+$("export").onclick=()=>exportResults(allResults,"namami-bcc-all-results.csv");
+$("exportFiltered").onclick=()=>{const rows=getFilteredResults();if(!rows.length){alert("Current filters mein export karne ke liye koi record nahi hai.");return;}exportResults(rows,"namami-bcc-filtered-results.csv");};
 db.auth.onAuthStateChange((_event,session)=>{if(!session){$("dashboard").classList.add("hidden");$("login").classList.remove("hidden");}});
 showSession();
 </script></body></html>
