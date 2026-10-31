@@ -125,7 +125,7 @@ input:focus{outline:3px solid #22d3ee38;border-color:#0891b2}
 <img id="photoPreview" class="photo-preview hidden" alt="Student photo preview"><button type="button" id="removePhotoBtn" class="secondary hidden">फोटो हटाएँ</button>
 </div>
 </div><p><button id="startBtn">Start Exam / परीक्षा शुरू करें</button></p><p id="formMsg" role="status" class="muted"></p></section>
-<section id="examPanel" class="panel hidden"><div class="topline"><div><strong id="candidate"></strong><div class="muted">हर प्रश्न में एक विकल्प चुनें। / Select one answer per question.</div></div><div class="timer" id="timer">20:00</div></div><div id="questions"></div><div id="examControls" class="topline"><span class="muted" id="progress">0/20 answered</span><button id="submitBtn">Submit Exam / परीक्षा जमा करें</button></div><p id="examMsg" role="status"></p></section>
+<section id="examPanel" class="panel hidden"><div class="topline"><div><strong id="candidate"></strong><div class="muted">हर प्रश्न में एक विकल्प चुनें। / Select one answer per question.</div></div><div class="timer" id="timer">20:00</div></div><div id="antiCheatStatus" role="status" style="margin:12px 0;padding:12px 15px;border:1px solid #f59e0b;border-radius:12px;background:#fffbeb;color:#92400e;font-weight:700">🛡️ Anti-Cheating: 0/3 warnings · प्रश्न और विकल्प अलग क्रम में</div><div id="questions"></div><div id="examControls" class="topline"><span class="muted" id="progress">0/20 answered</span><button id="submitBtn">Submit Exam / परीक्षा जमा करें</button></div><p id="examMsg" role="status"></p></section>
 <section id="resultPanel" class="panel hidden"><h2>Result / परिणाम</h2><div class="score" id="score"></div><p id="resultText"></p><p id="resultMeta" class="muted"></p><div class="topline no-print"><button onclick="window.print()">Print / Save as PDF</button><button id="downloadReportBtn" style="background:linear-gradient(135deg,#059669,#047857)">Download Personal Report Card</button><button id="reviewToggle" style="background:linear-gradient(135deg,#0f766e,#0d9488)">Show Answer Review / उत्तर देखें</button></div><div id="review" class="hidden"></div><p class="muted">यह आपका व्यक्तिगत परिणाम है। इसे डाउनलोड करें या Print में जाकर “Save as PDF” चुनें।</p><p id="accessInfo"></p><button class="no-print" id="downloadBtn" style="background:#334155">Download Scorecard JSON</button></section>
 </main><footer>Developed by Mr. Pawan Soni · Namami Digital Skills Academy, Sohagpur</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -133,7 +133,8 @@ input:focus{outline:3px solid #22d3ee38;border-color:#0891b2}
 const SUPABASE_URL = "https://jnfteavjywiqoatuwwhx.supabase.co";
 const SUPABASE_KEY = "sb_publishable_n8VJNBBkRO1u4btW9nWx3Q_d4NpxCWu";
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let questions=[], startedAt=null, deadline=0, timerHandle=null, resultData=null, examSessionToken=null, authenticatedRoll=null, student={photoData:""};
+let questions=[], examDisplayQuestions=[], optionOrderById=new Map(), startedAt=null, deadline=0, timerHandle=null, resultData=null, examSessionToken=null, authenticatedRoll=null, student={photoData:""};
+let antiCheatActive=false, antiCheatWarnings=0, lastAntiCheatEventAt=0;
 const $=id=>document.getElementById(id);
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 async function loadQuestions(){
@@ -159,6 +160,7 @@ async function readStudentPhoto(file){
 }
 $("photo").addEventListener("change",async e=>{try{const data=await readStudentPhoto(e.target.files[0]);await setStudentPhoto(data);if(data)$("formMsg").textContent="Gallery फोटो तैयार है।";}catch(err){await setStudentPhoto("");e.target.value="";$("formMsg").textContent=err.message;}});
 $('startBtn').onclick=async()=>{
+ try{if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});}catch(_){}
  const name=$('name').value.trim(),roll=$('roll').value.trim().toUpperCase(),password=$('examPassword').value,mobile=$('mobile').value.trim(),email=$('email').value.trim();
  if(!roll||!password||!mobile||!email||! /^\S+@\S+\.\S+$/.test(email)){ $('formMsg').textContent='रोल नंबर, पासवर्ड, मोबाइल और सही ईमेल भरें। विद्यार्थी का नाम रिकॉर्ड से अपने-आप आएगा।';return;}
  $('startBtn').disabled=true;$('formMsg').textContent='पासवर्ड सत्यापित हो रहा है…';
@@ -171,21 +173,34 @@ $('startBtn').onclick=async()=>{
       examSessionToken=login.session_token;authenticatedRoll=login.roll_number;
    await loadQuestions();student={...student,name:login.student_name,roll:login.roll_number,mobile,email};startedAt=new Date().toISOString();deadline=Date.now()+20*60*1000;
    $('name').value=login.student_name;$('roll').value=login.roll_number;
-   $('candidate').textContent=login.student_name+' · Roll: '+login.roll_number;$('studentForm').classList.add('hidden');$('examPanel').classList.remove('hidden');renderQuestions();tick();timerHandle=setInterval(tick,1000);
+   $('candidate').textContent=login.student_name+' · Roll: '+login.roll_number;$('studentForm').classList.add('hidden');$('examPanel').classList.remove('hidden');renderQuestions();startAntiCheat();tick();timerHandle=setInterval(tick,1000);
  }catch(e){examSessionToken=null;authenticatedRoll=null;$('formMsg').textContent='Login/Exam त्रुटि: '+(e.message||'विवरण जाँचें।');$('startBtn').disabled=false;}
 };
-function renderQuestions(){ $('questions').innerHTML=questions.map((q,i)=>'<article class="q" id="q-'+q.id+'"><div class="unit">Unit '+String(q.unit_no).padStart(2,'0')+' · Question '+(i+1)+'</div><h3>'+escapeHtml(q.question_en)+'</h3><p>'+escapeHtml(q.question_hi)+'</p>'+q.options.map((o,j)=>'<label class="opt"><input type="radio" name="q'+q.id+'" value="'+j+'"><span>'+String.fromCharCode(65+j)+'. '+escapeHtml(o)+'</span></label>').join('')+'</article>').join('');
+function shuffleList(items){const a=items.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function renderQuestions(){
+ examDisplayQuestions=shuffleList(questions);optionOrderById.clear();
+ $('questions').innerHTML=examDisplayQuestions.map((q,i)=>{const order=shuffleList(q.options.map((_,idx)=>idx));optionOrderById.set(q.id,order);return '<article class="q" id="q-'+q.id+'"><div class="unit">Unit '+String(q.unit_no).padStart(2,'0')+' · Question '+(i+1)+'</div><h3>'+escapeHtml(q.question_en)+'</h3><p>'+escapeHtml(q.question_hi)+'</p>'+order.map((originalIndex,j)=>'<label class="opt"><input type="radio" name="q'+q.id+'" value="'+originalIndex+'"><span>'+String.fromCharCode(65+j)+'. '+escapeHtml(q.options[originalIndex])+'</span></label>').join('')+'</article>';}).join('');
  $('questions').addEventListener('change',updateProgress);updateProgress();}
 function updateProgress(){let n=questions.filter(q=>document.querySelector('input[name="q'+q.id+'"]:checked')).length;$('progress').textContent=n+'/20 answered';}
+function updateAntiCheatStatus(message){const el=$('antiCheatStatus');if(!el)return;el.textContent='🛡️ Anti-Cheating: '+antiCheatWarnings+'/3 warnings'+(message?' · '+message:'');el.style.background=antiCheatWarnings>=2?'#fee2e2':'#fffbeb';el.style.borderColor=antiCheatWarnings>=2?'#ef4444':'#f59e0b';el.style.color=antiCheatWarnings>=2?'#991b1b':'#92400e';}
+function recordAntiCheatEvent(reason){if(!antiCheatActive||submitting)return;const now=Date.now();if(now-lastAntiCheatEventAt<2500)return;lastAntiCheatEventAt=now;antiCheatWarnings++;updateAntiCheatStatus(reason+' · कृपया परीक्षा पर ध्यान दें');if(antiCheatWarnings>=3){antiCheatActive=false;submitExam(true,'तीन Anti-Cheating warnings के कारण परीक्षा स्वतः जमा की गई।');}}
+function startAntiCheat(){antiCheatActive=true;antiCheatWarnings=0;lastAntiCheatEventAt=0;updateAntiCheatStatus('Monitoring चालू');}
+function stopAntiCheat(){antiCheatActive=false;try{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});}catch(_){}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)recordAntiCheatEvent('दूसरी Tab/Window पर जाने की कोशिश');});
+window.addEventListener('blur',()=>recordAntiCheatEvent('Exam Window से बाहर जाने की कोशिश'));
+document.addEventListener('fullscreenchange',()=>{if(antiCheatActive&&!document.fullscreenElement)recordAntiCheatEvent('Full Screen बंद किया गया');});
+['copy','cut','paste','contextmenu'].forEach(evt=>document.addEventListener(evt,e=>{if(antiCheatActive){e.preventDefault();if(evt==='copy'||evt==='paste'||evt==='cut')recordAntiCheatEvent('Copy/Paste प्रतिबंधित है');}}));
+document.addEventListener('keydown',e=>{if(!antiCheatActive)return;const k=e.key.toLowerCase(),blocked=(e.ctrlKey||e.metaKey)&&['c','v','x','p','s','u','a'].includes(k);if(blocked||e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['i','j','c'].includes(k))||e.key==='PrintScreen'){e.preventDefault();recordAntiCheatEvent('प्रतिबंधित Keyboard Shortcut');}});
+window.addEventListener('beforeunload',e=>{if(antiCheatActive){e.preventDefault();e.returnValue='परीक्षा चल रही है। क्या आप बाहर जाना चाहते हैं?';}});
 function tick(){const left=Math.max(0,deadline-Date.now()),m=Math.floor(left/60000),s=Math.floor(left%60000/1000);$('timer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');if(left<=0){clearInterval(timerHandle);submitExam(true);}}
 $('submitBtn').onclick=()=>{const n=questions.filter(q=>document.querySelector('input[name="q'+q.id+'"]:checked')).length;if(n<20&&!confirm('आपने '+n+'/20 प्रश्नों के उत्तर दिए हैं। क्या जमा करना है?'))return;submitExam(false);};
 let submitting=false;
-async function submitExam(auto){if(submitting||!questions.length)return;submitting=true;$('submitBtn').disabled=true;$('examMsg').textContent=auto?'समय समाप्त! उत्तर जमा हो रहे हैं…':'उत्तर जमा हो रहे हैं…';
+async function submitExam(auto,autoReason=''){if(submitting||!questions.length)return;stopAntiCheat();submitting=true;$('submitBtn').disabled=true;$('examMsg').textContent=auto?(autoReason||'समय समाप्त! उत्तर जमा हो रहे हैं…'):'उत्तर जमा हो रहे हैं…';
 try{const answers=questions.map(q=>({question_id:q.id,selected_option:Number(document.querySelector('input[name="q'+q.id+'"]:checked')?.value??-1)}));
 if(!examSessionToken||student.roll!==authenticatedRoll)throw new Error('Valid student login required.');
 const {data,error}=await db.rpc('bcc_submit_term1_exam',{p_student_name:student.name,p_roll_number:student.roll,p_mobile:student.mobile,p_email:student.email,p_answers:answers,p_started_at:startedAt,p_student_photo_data:student.photoData||null,p_exam_session:examSessionToken});
 if(error)throw error;resultData={...data,student_name:student.name,roll_number:student.roll,submitted_at:new Date().toISOString(),review:data.review||[]};
-$('examPanel').classList.add('hidden');$('resultPanel').classList.remove('hidden');$('score').textContent=data.score+' / '+data.total;$('resultText').textContent=(data.passed?'PASS':'KEEP PRACTICING')+' · '+Math.round(data.score/data.total*100)+'%';$('resultMeta').textContent='Student: '+student.name+' | Roll: '+student.roll+' | '+new Date().toLocaleString();
+$('examPanel').classList.add('hidden');$('resultPanel').classList.remove('hidden');$('score').textContent=data.score+' / '+data.total;$('resultText').textContent=(data.passed?'PASS':'KEEP PRACTICING')+' · '+Math.round(data.score/data.total*100)+'%';$('resultMeta').textContent='Student: '+student.name+' | Roll: '+student.roll+' | '+new Date().toLocaleString()+' | Anti-Cheating Warnings: '+antiCheatWarnings+'/3';
 $('accessInfo').textContent='Review access code: '+data.access_token+' · Attempt ID: '+data.attempt_id;renderReview(resultData.review);window.scrollTo(0,0);
 }catch(e){$('examMsg').textContent='जमा नहीं हो पाया: '+e.message+' · इंटरनेट जाँचकर दोबारा Submit करें।';$('submitBtn').disabled=false;submitting=false;}}
 function renderReview(review){$('review').innerHTML=review.map((r,i)=>'<article class="q '+(r.is_correct?'correct':'wrong')+'"><div class="unit">Unit '+r.unit_no+' · Question '+(i+1)+' · '+(r.is_correct?'Correct':'Incorrect')+'</div><h3>'+escapeHtml(r.question_en)+'</h3><p>'+escapeHtml(r.question_hi)+'</p><p>Your answer: <b>'+escapeHtml(r.selected_option < 0 ? 'Not answered / उत्तर नहीं दिया' : r.options[r.selected_option])+'</b></p><p>Correct answer: <b>'+escapeHtml(r.options[r.correct_option])+'</b></p><p class="muted">'+escapeHtml(r.explanation_en)+' '+escapeHtml(r.explanation_hi)+'</p></article>').join('');}
