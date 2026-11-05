@@ -68,14 +68,14 @@ header:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-
 </main><footer>Developed by Mr. Pawan Soni · Namami Digital Skills Academy, Sohagpur</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 const db=window.supabase.createClient("https://jnfteavjywiqoatuwwhx.supabase.co","sb_publishable_n8VJNBBkRO1u4btW9nWx3Q_d4NpxCWu");
-const $=id=>document.getElementById(id);let allResults=[];
+const $=id=>document.getElementById(id);const CURRENT_EXAM_TOTAL=20;let allResults=[];
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 async function showSession(){const {data:{session}}=await db.auth.getSession();if(session){$("login").classList.add("hidden");$("dashboard").classList.remove("hidden");await loadResults();}}
 $("loginBtn").onclick=async()=>{ $("loginMsg").textContent="Signing in…";const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){$("loginMsg").textContent="Login failed: "+error.message;return;}await showSession();};
 $("logout").onclick=async()=>{await db.auth.signOut();$("dashboard").classList.add("hidden");$("login").classList.remove("hidden");};
 $("refresh").onclick=loadResults;
 async function loadResults(){ $("status").textContent="Loading…";const {data,error}=await db.from("bcc_attempts").select("id,student_name,roll_number,mobile,email,score,total,started_at,submitted_at").order("submitted_at",{ascending:false}).limit(500);
-if(error){$("status").textContent="Could not load results: "+error.message+" (Check teacher access in bcc_teachers.)";return;}allResults=data||[];updateStats();renderRows();}
+if(error){$("status").textContent="Could not load results: "+error.message+" (Check teacher access in bcc_teachers.)";return;}allResults=(data||[]).map(r=>({...r,total:CURRENT_EXAM_TOTAL}));updateStats();renderRows();}
 function updateStats(){
  $("totalStudents").textContent=allResults.length;
  $("passedCount").textContent=allResults.filter(r=>Number(r.score)/Math.max(1,Number(r.total))>=0.4).length;
